@@ -645,6 +645,7 @@ fig.savefig("5_pooling")
 ax.cla()
 ###############################################################################################################
 
+
 # activation functions
 ###############################################################################################################
 #-----------------------------6-softmax---------------------------------------------------------
@@ -734,34 +735,222 @@ ac_smax_al = [item[0] for item in afnc_softmax]
 ac_smax_t_acc = [item[1] for item in afnc_softmax]
 ac_smax_te_acc = [item[2] for item in afnc_softmax]
 
-adam_al = [item[0] for item in optim_adam]
-adam_t_acc = [item[1] for item in optim_adam]
-adam_te_acc = [item[2] for item in optim_adam]
+ac_relu_al = [item[0] for item in afnc_relu]
+ac_relu_t_acc = [item[1] for item in afnc_relu]
+ac_relu_te_acc = [item[2] for item in afnc_relu]
 
-rms_al = [item[0] for item in optim_rms]
-rms_t_acc = [item[1] for item in optim_adam]
-rms_te_acc = [item[2] for item in optim_adam]
+ac_leaky_al = [item[0] for item in afnc_LeakyReLU]
+ac_leaky_t_acc = [item[1] for item in afnc_LeakyReLU]
+ac_leaky_te_acc = [item[2] for item in afnc_LeakyReLU]
 
-ax.plot(x_range, rms_al, '-', label='RMS loss')
-ax.plot(x_range, rms_t_acc, '--', label='RMS train acc')
-ax.plot(x_range, rms_te_acc, '-', label='RMS test acc')
+ax.plot(x_range, ac_smax_al, '-', label='Softmax loss')
+ax.plot(x_range, ac_smax_t_acc, '--', label='softmax train acc')
+ax.plot(x_range, ac_smax_te_acc, '-', label='softmax test acc')
 
-ax.plot(x_range, sgd_al, '-', label='SGD loss')
-ax.plot(x_range, sgd_t_acc, '--', label='SGD train acc')
-ax.plot(x_range, sgd_te_acc, '-', label='SGD test acc')
+ax.plot(x_range, ac_relu_al, '-', label='Relu loss')
+ax.plot(x_range, ac_relu_t_acc, '--', label='Relu train acc')
+ax.plot(x_range, ac_relu_te_acc, '-', label='Relu test acc')
 
-ax.plot(x_range, adam_al, '-', label='Adam loss')
-ax.plot(x_range, adam_t_acc, '--', label='Adam train acc')
-ax.plot(x_range, adam_te_acc, '-', label='Adam test acc')
+ax.plot(x_range, ac_leaky_al, '-', label='Lrelu loss')
+ax.plot(x_range, ac_leaky_t_acc, '--', label='Lrelu train acc')
+ax.plot(x_range, ac_leaky_te_acc, '-', label='Lrelu test acc')
 
-ax.set(xlabel='epoch', title='Optimization Functions')
+ax.set(xlabel='epoch', title='Activation Functions')
 
 ax.grid()
 leg = ax.legend();
-fig.savefig("6_optimization")
+fig.savefig("6_activation_functions")
 ax.cla()
 ###############################################################################################################
 
+# # of conv layers
+###############################################################################################################
+#-----------------------------7-3---------------------------------------------------------
+default_parameters()
+net = nn.Sequential(# First convolution layer
+                    nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding=2),
+                    nn.Sigmoid(), #activation layer
+                    nn.AvgPool2d(kernel_size=2, stride=2),
+                    # Second convolution layer
+                    nn.Conv2d(6, 16, kernel_size=5),
+                    nn.Sigmoid(), #activation layer
+                    nn.AvgPool2d(kernel_size=2, stride=2),
+
+                    nn.Conv2d(16, 32, kernel_size=5),
+                    nn.Sigmoid(), #activation layer
+                    # Third fully connected (FC) layer
+                    nn.Flatten(),
+                    nn.Linear(32, 120),
+                    nn.Sigmoid(),
+                    # Fourth fully connected (FC) layer
+                    nn.Linear(120, 84),
+                    nn.Sigmoid(),
+                    # Fifth fully connected (FC) layer
+                    nn.Linear(84, 10))
+net.to(device)
+total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+print('On:', device, 'Number of parameters to estimate/learn:', total_params)
+
+clayers_3 = train_full (net, train_iter, test_iter, 50, 0.0001, ":(");
+#-----------------------------7-3---------------------------------------------------------
+#-----------------------------7-2---------------------------------------------------------
+default_parameters()
+net.to(device)
+total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+print('On:', device, 'Number of parameters to estimate/learn:', total_params)
+clayers_2 = train_full (net, train_iter, test_iter, 50, 0.0001, ":(");
+#-----------------------------7-2---------------------------------------------------------
+#-----------------------------7-1---------------------------------------------------------
+default_parameters()
+net = nn.Sequential(# First convolution layer
+                    nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding=2),
+                    nn.Sigmoid(), #activation layer
+                    nn.AvgPool2d(kernel_size=2, stride=2),
+
+                    nn.Flatten(),
+                    nn.Linear(1176, 120),
+                    nn.Sigmoid(),
+
+                    nn.Linear(120, 84),
+                    nn.Sigmoid(),
+
+                    nn.Linear(84, 10))
+net.to(device)
+total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+print('On:', device, 'Number of parameters to estimate/learn:', total_params)
+
+clayers_1 = train_full (net, train_iter, test_iter, 50, 0.0001, ":(");
+#-----------------------------7-1---------------------------------------------------------
+fig, ax = plt.subplots()
+x_range = range(0, 50)
+
+plt.xlim(0, 50)
+plt.ylim(0, 1)
+ax.set_yscale('linear')
+ax.set_xscale('linear')
+
+clay_3_al = [item[0] for item in clayers_3]
+clay_3_t_acc = [item[1] for item in clayers_3]
+clay_3_te_acc = [item[2] for item in clayers_3]
+
+clay_2_al = [item[0] for item in clayers_2]
+clay_2_al_t_acc = [item[1] for item in clayers_2]
+clay_2_al_te_acc = [item[2] for item in clayers_2]
+
+clay_1_al = [item[0] for item in clayers_1]
+clay_1_t_acc = [item[1] for item in clayers_1]
+clay_1_te_acc = [item[2] for item in clayers_1]
+
+ax.plot(x_range, clay_1_al, '-', label='1 loss')
+ax.plot(x_range, clay_1_t_acc, '--', label='1 train acc')
+ax.plot(x_range, clay_1_te_acc, '-', label='1 test acc')
+
+ax.plot(x_range, clay_2_al, '-', label='2 loss')
+ax.plot(x_range, clay_2_al_t_acc, '--', label='2 train acc')
+ax.plot(x_range, clay_2_al_te_acc, '-', label='2 test acc')
+
+ax.plot(x_range, clay_3_al, '-', label='3 loss')
+ax.plot(x_range, clay_3_t_acc, '--', label='3 train acc')
+ax.plot(x_range, clay_3_te_acc, '-', label='3 test acc')
+
+ax.set(xlabel='epoch', title='# of Convolution Layers')
+ax.grid()
+leg = ax.legend();
+fig.savefig("7_num_of_conv_layers")
+ax.cla()
+###############################################################################################################
+
+
+# fully connected layers
+###############################################################################################################
+#-----------------------------8-1---------------------------------------------------------
+default_parameters()
+net = nn.Sequential(# First convolution layer
+                    nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding=2),
+                    nn.Sigmoid(), #activation layer
+                    nn.AvgPool2d(kernel_size=2, stride=2),
+                    # Second convolution layer
+                    nn.Conv2d(6, 16, kernel_size=5),
+                    nn.Sigmoid(), #activation layer
+                    nn.AvgPool2d(kernel_size=2, stride=2),
+                    # Third fully connected (FC) layer
+                    nn.Flatten(),
+                    nn.Linear(16 * 5 * 5, 120),
+                    nn.Sigmoid())
+net.to(device)
+total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+print('On:', device, 'Number of parameters to estimate/learn:', total_params)
+
+fflay_1 = train_full (net, train_iter, test_iter, 50, 0.0001, ":(");
+#-----------------------------8-1---------------------------------------------------------
+#-----------------------------8-2---------------------------------------------------------
+default_parameters()
+net = nn.Sequential(# First convolution layer
+                    nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding=2),
+                    nn.Sigmoid(), #activation layer
+                    nn.AvgPool2d(kernel_size=2, stride=2),
+                    # Second convolution layer
+                    nn.Conv2d(6, 16, kernel_size=5),
+                    nn.Sigmoid(), #activation layer
+                    nn.AvgPool2d(kernel_size=2, stride=2),
+                    # Third fully connected (FC) layer
+                    nn.Flatten(),
+                    nn.Linear(16 * 5 * 5, 120),
+                    nn.Sigmoid(),
+                    # Fourth fully connected (FC) layer
+                    nn.Linear(120, 84),
+                    nn.Sigmoid())
+net.to(device)
+total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+print('On:', device, 'Number of parameters to estimate/learn:', total_params)
+fflay_2 = train_full (net, train_iter, test_iter, 50, 0.0001, ":(");
+#-----------------------------8-2---------------------------------------------------------
+#-----------------------------8-3---------------------------------------------------------
+default_parameters()
+net.to(device)
+total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+print('On:', device, 'Number of parameters to estimate/learn:', total_params)
+
+fflay_3 = train_full (net, train_iter, test_iter, 50, 0.0001, ":(");
+#-----------------------------7-3---------------------------------------------------------
+fig, ax = plt.subplots()
+x_range = range(0, 50)
+
+plt.xlim(0, 50)
+plt.ylim(0, 1)
+ax.set_yscale('linear')
+ax.set_xscale('linear')
+
+ff1_al = [item[0] for item in fflay_1]
+ff1_t_acc = [item[1] for item in fflay_1]
+ff1_te_acc = [item[2] for item in fflay_1]
+
+ff2_al = [item[0] for item in fflay_2]
+ff2_t_acc = [item[1] for item in fflay_2]
+ff2_te_acc = [item[2] for item in fflay_2]
+
+ff3_al = [item[0] for item in fflay_3]
+ff3_t_acc = [item[1] for item in fflay_3]
+ff3_te_acc = [item[2] for item in fflay_3]
+
+ax.plot(x_range, ff1_al, '-', label='1 loss')
+ax.plot(x_range, ff1_t_acc, '--', label='1 train acc')
+ax.plot(x_range, ff1_te_acc, '-', label='1 test acc')
+
+ax.plot(x_range, ff2_al, '-', label='2 loss')
+ax.plot(x_range, ff2_t_acc, '--', label='2 train acc')
+ax.plot(x_range, ff2_te_acc, '-', label='2 test acc')
+
+ax.plot(x_range, ff3_al, '-', label='3 loss')
+ax.plot(x_range, ff3_t_acc, '--', label='3 train acc')
+ax.plot(x_range, ff3_te_acc, '-', label='3 test acc')
+
+ax.set(xlabel='epoch', title='# of Fully-Connected Layers')
+ax.grid()
+leg = ax.legend();
+fig.savefig("8_num_of_ff_layers")
+ax.cla()
+###############################################################################################################
 
 # learning rates and epochs
 ###############################################################################################################
